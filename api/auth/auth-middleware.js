@@ -1,6 +1,28 @@
+const { default: jwtDecode } = require("jwt-decode");
 const { JWT_SECRET } = require("../secrets"); // use this secret!
+const jwt = require('jsonwebtoken');
 
 const restricted = (req, res, next) => {
+  const token = req.headers.authorization
+  if(!token) {
+    return next({
+      status:401, message: 'Token required'
+    })
+  }
+  
+    jwt.verify(
+      token,
+      JWT_SECRET,
+      (err, decoded) => {
+        if(err) return next({
+          status:401, message: 'Token invalid', realErrorMessage: err.message,
+        })
+        req.decodedJwt = decoded
+        req.token = token
+        next()
+      }
+    )
+
   /*
     If the user does not provide a token in the Authorization header:
     status 401
